@@ -1,0 +1,15 @@
+<package>
+  <description brief="gy85-raspberrypi">
+
+     gy85-raspberrypi
+
+  </description>
+  <author>LIU YE</author>
+  <license>GPLv3</license>
+  <depend package="roscpp"/>
+
+
+</package>
+
+
+
