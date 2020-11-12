@@ -1,0 +1,47 @@
+%YAML:1.0
+
+# get all the parameters through commond "rs-enumerate-devices -c"
+
+#camera calibration 
+model_type: PINHOLE
+camera_name: camera
+image_width: 640
+image_height: 480
+distortion_parameters:
+   k1: 0
+   k2: 0
+   p1: 0
+   p2: 0
+projection_parameters:
+   fx: 607.481628417969
+   fy: 606.448974609375
+   cx: 328.528717041016
+   cy: 240.956237792969
+
+# Extrinsic parameter between IMU and Camera.
+estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+                        # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
+                        # 2  Don't know anything about extrinsic parameters. You don't need to give R,T. We will try to calibrate it. Do some rotation movement at beginning.                        
+#If you choose 0 or 1, you should write down the following matrix.
+#Rotation from camera frame to imu frame, imu^R_cam
+extrinsicRotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.999961       ,  0.00808239   ,   -0.00355241,
+           -0.00808994    ,   0.999965    ,    -0.00211705, 
+           0.00353518     ,  0.00214571   ,    0.999991]
+
+#Translation from camera frame to imu frame, imu^T_cam
+extrinsicTranslation: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [-0.0204017125070095,  0.00497330538928509,  0.0117500685155392]
+
+#imu parameters        The more accurate parameters you provide, the better performance
+acc_n: 0.285        # accelerometer measurement noise standard deviation. #0.2   0.04
+gyr_n: 0.033       # gyroscope measurement noise standard deviation.     #0.05  0.004
+acc_w: 0.0112        # accelerometer bias random work noise standard deviation.  #0.02
+gyr_w: 2.6e-4        # gyroscope bias random work noise standard deviation.     #4.0e-5
+g_norm: 9.80607     # gravity magnitude
