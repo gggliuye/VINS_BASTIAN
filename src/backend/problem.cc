@@ -197,17 +197,22 @@ bool Problem::Solve(int iterations) {
     int iter = 0;
     double last_chi_ = 1e20;
     if(verbose){
-        std::printf(" | %10s | %13s | %13s |\n", "Iteration", "Residual", "Norm Dx");
+        std::printf(" | %10s | %13s | %13s | %13s |\n", "Iteration", "Residual", "Norm Dx", "Lambda");
         //std::printf("  %10d | %10.6f | %10.6f\n", iter, currentChi_, currentLambda_);
         //std::cout << "  -- iter" << iter << " , chi= " << currentChi_ << " , Lambda= " << currentLambda_ << std::endl;
     }
     while (!stop && (iter < iterations)) {
         bool oneStepSuccess = false;
         int false_cnt = 0;
-        while (!oneStepSuccess && false_cnt < 10)  // keep iteration
+        while (!oneStepSuccess && false_cnt < 8)  // keep iteration
         {
             // solve the linear system
-            SolveLinearSystem();
+            if(!SolveLinearSystem()){
+                // reinit LM have another try
+                ComputeLambdaInitLM();
+                false_cnt++;
+                continue;
+            }
 
             // update the states
             UpdateStates();
@@ -230,10 +235,10 @@ bool Problem::Solve(int iterations) {
 
         if(verbose){
             //std::cout << "  -- iter: " << iter << " , chi= " << currentChi_ << " , delta x= " << dCurrenNormDx_ << std::endl;
-            std::printf(" | %10d | %13.6f | %13.6f |\n", iter, currentChi_, dCurrenNormDx_);
+            std::printf(" | %10d | %13.6f | %13.6f | %13.6f |\n", iter, currentChi_, dCurrenNormDx_, currentLambda_);
         }
 
-        // if the current residual improvement too small
+        // if the current residual improvement too small or maybe the linear system solved failed
         if(last_chi_ - currentChi_ < 1e-6){
             if(verbose)
                 std::cout << " [LM STOP] the residual reduce too less (< 1e-6)" << std::endl;
@@ -393,7 +398,7 @@ void Problem::MakeHessian() {
 /*
  * Solve Hx = b, we can use PCG iterative method or use sparse Cholesky
  */
-void Problem::SolveLinearSystem() {
+bool Problem::SolveLinearSystem() {
     if (problemType_ == ProblemType::GENERIC_PROBLEM) {
         // PCG solver
         MatXX H = Hessian_;
@@ -470,15 +475,19 @@ void Problem::SolveLinearSystem() {
 
 //        std::cout << "schur time cost: "<< t_Hmminv.toc()<<std::endl;
     }
+    dCurrenNormDx_ = delta_x_.norm();
 
+    if(dCurrenNormDx_ > 1e3){
+        // solve failed, as the delta x is much too large
+        return false;
+    }
+    return true;
 }
 
 void Problem::UpdateStates() {
-
-    dCurrenNormDx_ = delta_x_.norm();
     // update vertex
     for (auto vertex: verticies_) {
-        vertex.second->BackUpParameters();    // 保存上次的估计值
+        vertex.second->BackUpParameters();    // save the last estimation
 
         ulong idx = vertex.second->OrderingId();
         ulong dim = vertex.second->LocalDimension();
@@ -543,9 +552,9 @@ void Problem::ComputeLambdaInitLM() {
     maxDiagonal = std::min(5e10, maxDiagonal);
     double tau = 1e-5;  // 1e-5
     currentLambda_ = tau * maxDiagonal;
-//        std::cout << "currentLamba_: "<<maxDiagonal<<" "<<currentLambda_<<std::endl;
 }
 
+// not used in slam system
 void Problem::AddLambdatoHessianLM() {
     ulong size = Hessian_.cols();
     assert(Hessian_.rows() == Hessian_.cols() && "Hessian is not square");
@@ -554,10 +563,10 @@ void Problem::AddLambdatoHessianLM() {
     }
 }
 
+// not used in slam system
 void Problem::RemoveLambdaHessianLM() {
     ulong size = Hessian_.cols();
     assert(Hessian_.rows() == Hessian_.cols() && "Hessian is not square");
-    // TODO:: 这里不应该减去一个，数值的反复加减容易造成数值精度出问题？而应该保存叠加lambda前的值，在这里直接赋值
     for (ulong i = 0; i < size; ++i) {
         Hessian_(i, i) -= currentLambda_;
     }
