@@ -120,7 +120,7 @@ private:
     void SchurSBA();
 
     /// solve the linea problem
-    void SolveLinearSystem();
+    bool SolveLinearSystem();
 
     /// update the states
     void UpdateStates();
