@@ -4,6 +4,8 @@
 
 [video youtube](https://www.youtube.com/watch?v=-7wahX6hKLk&t=31s)
 
+![image example](https://github.com/gggliuye/VINS_BASTIAN/blob/main/test/example.png)
+
 ### Dependences：
 
 1. pangolin: <https://github.com/stevenlovegrove/Pangolin>
