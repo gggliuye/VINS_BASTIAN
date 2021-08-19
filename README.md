@@ -1,5 +1,9 @@
 # VINS-RAW
 
+[video bilibili](https://www.bilibili.com/video/BV1yK411G75Z/)
+
+[video youtube](https://www.youtube.com/watch?v=-7wahX6hKLk&t=31s)
+
 ### Dependences：
 
 1. pangolin: <https://github.com/stevenlovegrove/Pangolin>
